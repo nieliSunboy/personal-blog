@@ -93,13 +93,13 @@ const insertUser = (req, res) => {
     if (!verifyUser(req.body, res)) {
         return
     }
+    console.log(info)
     // 保存到数据库
-    let sql = `insert ignore into sys_user(user_name, password, nickName, picture, desscribe, sex, emall, create_time, create_user, status) 
-    value(${info.userName}, ${info.password}, ${info.nickName}, ${info.picture}, ${info.desscribe}, ${info.sex}, ${info.emall}, ${new Date()}, 1, 1)`
+    let sql = `insert ignore into sys_user(user_name, password, nickName, sex, emall, create_time, create_user, status) value('${info.userName}', '${info.password}', '${info.nickName}', ${info.sex}, '${info.emall}', '${time(new Date())}', 1, 1)`
 
-    clientDB.query(sql, (res) => {
-        const info = res;
-        if (res.warningStatus) {
+    clientDB.query(sql, (result) => {
+        const info = result;
+        if (result.warningStatus) {
             res.send({ code: 50, msg: '用户名已存在！', data: null });
             return
         }
@@ -147,7 +147,7 @@ const findUserList = (req, res) => {
                 }
             });
             return
-        })
+        })      
     })
 
 }
