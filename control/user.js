@@ -119,36 +119,52 @@ const findUserList = (req, res) => {
     if (!queryParams.pageSize) queryParams.pageSize = 10;
     if (!queryParams.current) queryParams.current = 1;
 
+    const sqlArr = [
+        'select * from sys_user',
+        'select COUNT(user_id) as count from sys_user',
+    ]
 
-    let sqlCount = `select COUNT(user_id) as count from sys_user `
+    const recsql = clientDB.paging(sqlArr, queryParams);
 
-    let sqlWhere = `WHERE user_name like '%${queryParams.userName || ''}%'`;
+    clientDB.query(recsql.sql, (result) => {
 
-    clientDB.query(sqlCount + sqlWhere, result => {
-        const count = result[0].count;
-
-        if (!count) {
-            res.send({
-                code: 50, msg: '查询完成', data: {
-                    data: [],
-                    totals: 0
-                }
-            });
-            return
-        }
-
-        let sql = `select * from sys_user ${sqlWhere} limit ${queryParams.pageSize * (queryParams.current - 1) || 0},${queryParams.pageSize}`;
-
-        clientDB.query(sql, list => {
-            res.send({
-                code: 50, msg: '查询完成', data: {
-                    data: list,
-                    totals: count
-                }
-            });
-            return
-        })      
+        res.send({
+            code: 50, msg: '查询完成', data: {
+                data: result[0],
+                totals: result[1].count
+            }
+        });
     })
+
+    // let sqlCount = `select COUNT(user_id) as count from sys_user `
+
+    // let sqlWhere = `WHERE user_name like '%${queryParams.userName || ''}%'`;
+
+    // clientDB.query(sqlCount + sqlWhere, result => {
+    //     const count = result[0].count;
+
+    //     if (!count) {
+    //         res.send({
+    //             code: 50, msg: '查询完成', data: {
+    //                 data: [],
+    //                 totals: 0
+    //             }
+    //         });
+    //         return
+    //     }
+
+    //     let sql = `select * from sys_user ${sqlWhere} limit ${queryParams.pageSize * (queryParams.current - 1) || 0},${queryParams.pageSize}`;
+
+    //     clientDB.query(sql, list => {
+    //         res.send({
+    //             code: 50, msg: '查询完成', data: {
+    //                 data: list,
+    //                 totals: count
+    //             }
+    //         });
+    //         return
+    //     })      
+    // })
 
 }
 

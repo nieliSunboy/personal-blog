@@ -4,7 +4,8 @@ const config = {
         host: 'rm-bp1o2bsr3e1390hhwao.mysql.rds.aliyuncs.com',
         user: 'root',
         password: 'Nl123+++',
-        database: 'personal-blog'
+        database: 'personal-blog',
+        multipleStatements: true,
     }
 }
 
