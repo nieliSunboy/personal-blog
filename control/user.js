@@ -93,9 +93,8 @@ const insertUser = (req, res) => {
     if (!verifyUser(req.body, res)) {
         return
     }
-    console.log(info)
     // 保存到数据库
-    let sql = `insert ignore into sys_user(user_name, password, nickName, sex, emall, create_time, create_user, status) value('${info.userName}', '${info.password}', '${info.nickName}', ${info.sex}, '${info.emall}', '${time(new Date())}', 1, 1)`
+    let sql = `insert ignore into sys_user(user_name, password, nickName, sex, emall, phone, create_time, update_time, create_user, status) value('${info.userName}', '${info.password}', '${info.nickName}', ${info.sex}, '${info.emall}', '${info.phone}', '${time(new Date())}','${time(new Date())}', 1, 1)`
 
     clientDB.query(sql, (result) => {
         const info = result;
@@ -106,6 +105,46 @@ const insertUser = (req, res) => {
 
         res.end({ code: 50, msg: '添加完成', data: null })
     })
+}
+
+/**
+ * 更新用户信息
+ */
+const updateUser = (req, res) => {
+    const info = req.body;
+    if (!verifyUser(req.body, res)) {
+        return
+    }
+
+    info.update_time = time(new Date());
+    info.update_user = 24;
+
+    const sql = clientDB.updateing('sys_user', info, ['user_id'])
+
+    console.log(sql, info)
+
+    clientDB.query(sql, (result) => {
+        const info = result;
+        res.end({ code: 50, msg: '修改完成', data: info })
+    })
+}
+
+
+
+/**
+ * 查询用户详情
+ */
+
+const findUserById = (req, res) => {
+    const { id } = req.body || {};
+    
+    const sql = `select * from sys_user where user_id=${id}`;
+
+    clientDB.query(sql, result => {
+        res.send({
+            code: 50, msg: '查询完成', data: result[0] || {}
+        })
+    })
 
 }
 
@@ -114,7 +153,6 @@ const insertUser = (req, res) => {
  */
 const findUserList = (req, res) => {
     const queryParams = req.body || {};
-    console.log(req.body)
 
     if (!queryParams.pageSize) queryParams.pageSize = 10;
     if (!queryParams.current) queryParams.current = 1;
@@ -126,46 +164,15 @@ const findUserList = (req, res) => {
 
     const recsql = clientDB.paging(sqlArr, queryParams);
 
-    clientDB.query(recsql.sql, (result) => {
-
+    clientDB.query(recsql.sql, result => {
         res.send({
             code: 50, msg: '查询完成', data: {
                 data: result[0],
-                totals: result[1].count
+                totals: result[1][0].count || 0
             }
         });
+        return
     })
-
-    // let sqlCount = `select COUNT(user_id) as count from sys_user `
-
-    // let sqlWhere = `WHERE user_name like '%${queryParams.userName || ''}%'`;
-
-    // clientDB.query(sqlCount + sqlWhere, result => {
-    //     const count = result[0].count;
-
-    //     if (!count) {
-    //         res.send({
-    //             code: 50, msg: '查询完成', data: {
-    //                 data: [],
-    //                 totals: 0
-    //             }
-    //         });
-    //         return
-    //     }
-
-    //     let sql = `select * from sys_user ${sqlWhere} limit ${queryParams.pageSize * (queryParams.current - 1) || 0},${queryParams.pageSize}`;
-
-    //     clientDB.query(sql, list => {
-    //         res.send({
-    //             code: 50, msg: '查询完成', data: {
-    //                 data: list,
-    //                 totals: count
-    //             }
-    //         });
-    //         return
-    //     })      
-    // })
-
 }
 
 
@@ -173,5 +180,7 @@ module.exports = {
     login,
     register,
     insertUser,
-    findUserList
+    findUserList,
+    findUserById,
+    updateUser
 }

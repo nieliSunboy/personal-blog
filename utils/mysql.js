@@ -10,16 +10,37 @@ const paging = (sql, params) => {
     params.pageSize = parseInt(params.pageSize);
     params.offSet = (parseInt(params.current) - 1) * params.pageSize;
   }
-  let sqlString = 'WHERE 1=1';
+  let sqlString = ' WHERE 1=1';
   for(let key in params) {
     if (pageKeys.includes(key)) continue;
     sqlString += ` AND ${key} like '%${params[key]}%'`;
   }
 
-  sql[0] = sqlString + ` ORDER BY ${params?.order || 'updateTime'} ${params?.sort || 'DESC'} LIMIT ${params.offSet},${params.pageSize};`
-  sql[1] = sqlString +  ` ORDER BY ${params?.order || 'updateTime'} ${params?.sort || 'DESC'};`
+  sql[0] = sql[0] + sqlString + ` ORDER BY ${params?.order || 'update_time'} ${params?.sort || 'DESC'} LIMIT ${params.offSet},${params.pageSize};`
+  sql[1] = sql[1] + sqlString +  ` ORDER BY ${params?.order || 'update_time'} ${params?.sort || 'DESC'};`
 
   return { sql: sql.join(''), params: params }
+}
+
+const updateing = (table, params, whereArr = []) => {
+  if (!params) {
+    return
+  }
+
+  let sql = `update ${table} set`;
+  let where = 'where 1=1';
+
+  for(let key in params) {
+    if (!params[key] && params[key] !== 0) continue;
+    sql += ` ${key}=${params[key]},`
+
+    if(!whereArr.includes(key) || (!params[key] && params[key] !== 0)) continue;
+    where += ` AND ${key}=${params[key]}`
+  }
+  
+  sql += ` ${where}`;
+
+  return sql;
 }
 
 const query = (sql, callback) => {
@@ -48,5 +69,6 @@ const queryPromise = (sql) => {
   module.exports = {
     query,
     paging,
-    queryPromise
+    queryPromise,
+    updateing
   }
